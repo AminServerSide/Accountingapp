@@ -5,10 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Accounting.DataLayer.Repositories;
+using Accounting.ViewModels.Customers;
 
 namespace Accounting.DataLayer.Services
 {
-    public class CustomerRepository:ICustomerRepository
+    public class CustomerRepository : ICustomerRepository
     {
         private Accounting_DBEntities db;
 
@@ -20,6 +21,30 @@ namespace Accounting.DataLayer.Services
         public List<Customers> GetAllCustomers()
         {
             return db.Customers.ToList();
+        }
+
+        public IEnumerable<Customers> GetCusstomersByFilter(string parameter)
+        {
+            return db.Customers.Where(c =>
+                c.FullName.Contains(parameter) || c.Email.Contains(parameter) || c.Mobile.Contains(parameter)).ToList();
+        }
+
+        public List<ListCustomerViewModel> GetNameCustomers(string filter = "")
+        {
+            if (filter == "")
+            {
+                return db.Customers.Select(c => new ListCustomerViewModel()
+                {
+                    CustomerID = c.CustomerID,
+                    FullName = c.FullName
+                }).ToList();
+            }
+
+            return db.Customers.Where(c => c.FullName.Contains(filter)).Select(c => new ListCustomerViewModel()
+            {
+                CustomerID = c.CustomerID,
+                FullName = c.FullName
+            }).ToList();
         }
 
         public Customers GetCustomerById(int customerId)
@@ -42,15 +67,22 @@ namespace Accounting.DataLayer.Services
 
         public bool UpdateCustomer(Customers customer)
         {
-            try
+            //  try
+            // {
+            var local = db.Set<Customers>()
+                .Local
+                .FirstOrDefault(f => f.CustomerID == customer.CustomerID);
+            if (local != null)
             {
-                db.Entry(customer).State = EntityState.Modified;
-                return true;
+                db.Entry(local).State = EntityState.Detached;
             }
-            catch
-            {
-                return false;
-            }
+            db.Entry(customer).State = EntityState.Modified;
+            return true;
+            // }
+            //  catch
+            // {
+            //      return false;
+            // }
         }
 
         public bool DeleteCustomer(Customers customer)
@@ -80,9 +112,14 @@ namespace Accounting.DataLayer.Services
             }
         }
 
-        public void Save()
+        public int GetCustomerIdByName(string name)
         {
-            db.SaveChanges();
+            return db.Customers.First(c => c.FullName == name).CustomerID;
+        }
+
+        public string GetCustomerNameById(int customerId)
+        {
+            return db.Customers.Find(customerId).FullName;
         }
     }
 }

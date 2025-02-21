@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\Accounting.App",
+    "\\Accounting.DataLayer",
+    "\\Accounting.DataLayer\\Services"
+  ],
+  "SelectedNode": "\\Accounting.DataLayer\\Services\\GenericRepository.cs",
+  "PreviewInSolutionExplorer": false
+}
